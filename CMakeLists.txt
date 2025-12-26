@@ -27,3 +27,5 @@ target_link_libraries(task_demo PRIVATE task_scheduler_core)
 # Install hedefleri (opsiyonel)
 install(TARGETS task_scheduler_core DESTINATION lib)
 install(DIRECTORY include/ DESTINATION include)
+
+
