@@ -34,3 +34,9 @@ if(pybind11_FOUND)
 else()
     message(STATUS "pybind11 not found, Python bindings disabled")
 endif()
+
+
+
+# Realistic demo test
+add_executable(realistic_demo tests/realistic_demo.cpp)
+target_link_libraries(realistic_demo PRIVATE task_scheduler_core)
