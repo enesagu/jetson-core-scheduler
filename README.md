@@ -4,27 +4,18 @@ NVIDIA Jetson cihazları için düşük seviyeli task zamanlama kütüphanesi.
 
 ## Özellikler
 
-- ✅ Task modeli (CPU/GPU/IO türleri, öncelik, deadline)
+- ✅ Task modeli (CPU/GPU/IO, priority 0-10, realtime)
 - ✅ Task Registry (kayıt, listeleme, silme)
 - ✅ Priority-based Scheduler
-- ✅ CPU Affinity (çekirdek bağlama)
+- ✅ CPU Affinity (sched_setaffinity)
 - ✅ Realtime Scheduling (SCHED_FIFO)
-- ✅ Thread Pool
-- 🔄 GPU Job Queue (yakında)
-- 🔄 Python API (yakında)
-
-## Gereksinimler
-
-- Ubuntu 20.04/22.04 (JetPack)
-- CMake >= 3.16
-- GCC >= 9 (C++17)
-- pthread
+- ✅ Thread Pool (paralel execution)
+- ✅ Metrics (task timing)
+- ✅ Python API (pybind11)
 
 ## Kurulum
 
 ```bash
-git clone <repo>
-cd jetson-task-scheduler
 mkdir build && cd build
-cmake ..
+cmake .. -Dpybind11_DIR=$(python3 -c "import pybind11; print(pybind11.get_cmake_dir())")
 make -j$(nproc)
