@@ -1,55 +1,31 @@
 #include "scheduler.hpp"
+#include "thread_pool.hpp"
+#include "metrics.hpp"
+#include "cpu_utils.hpp"
 #include <iostream>
 #include <chrono>
-#include <thread>
 
 int main() {
-    std::cout << "=== Jetson Task Scheduler Demo ===\n\n";
+    std::cout << "=== Jetson Task Scheduler ===\n\n";
 
-    jts::Scheduler scheduler;
+    jts::MetricsCollector metrics;
+    jts::ThreadPool pool(4);
 
-    // Task 1: Kamera (simülasyon)
-    jts::Task t1;
-    t1.name = "camera_capture";
-    t1.type = jts::TaskType::CPU;
-    t1.priority = 7;
-    t1.work = []() {
-        std::cout << "  [camera] Görüntü alınıyor...\n";
-        std::this_thread::sleep_for(std::chrono::milliseconds(100));
+    // runTask: Görev simülasyonu yapan yardımcı lambda fonksiyon
+    // Parametreler: id (görev kimliği), name (görev adı), ms (süre milisaniye)
+    auto runTask = [&](uint64_t id, const std::string& name, int ms) {
+        metrics.recordStart(id, name);
+        std::this_thread::sleep_for(std::chrono::milliseconds(ms));
+        metrics.recordEnd(id, true);
     };
-    scheduler.addTask(t1);
 
-    // Task 2: AI (yüksek öncelik, realtime)
-    jts::Task t2;
-    t2.name = "neural_inference";
-    t2.type = jts::TaskType::GPU;
-    t2.priority = 10;
-    t2.realtime = true;
-    t2.work = []() {
-        std::cout << "  [ai] Inference yapılıyor...\n";
-        std::this_thread::sleep_for(std::chrono::milliseconds(50));
-    };
-    scheduler.addTask(t2);
+    pool.submit([&]() { runTask(1, "camera", 100); });
+    pool.submit([&]() { runTask(2, "ai", 150); });
+    pool.submit([&]() { runTask(3, "tracking", 80); });
+    pool.submit([&]() { runTask(4, "logger", 30); });
 
-    // Task 3: Log (düşük öncelik)
-    jts::Task t3;
-    t3.name = "log_writer";
-    t3.type = jts::TaskType::IO;
-    t3.priority = 2;
-    t3.work = []() {
-        std::cout << "  [log] Log yazılıyor...\n";
-        std::this_thread::sleep_for(std::chrono::milliseconds(30));
-    };
-    scheduler.addTask(t3);
+    std::this_thread::sleep_for(std::chrono::milliseconds(500));
+    metrics.printSummary();
 
-    std::cout << "Bekleyen task sayısı: " << scheduler.pendingCount() << "\n\n";
-
-    // Tek tek çalıştır (öncelik sırasına göre)
-    std::cout << "--- Öncelik sırasına göre çalıştırma ---\n";
-    while (scheduler.runOnce()) {
-        // Tüm tasklar bitene kadar
-    }
-
-    std::cout << "\nDemo tamamlandı!\n";
     return 0;
 }
